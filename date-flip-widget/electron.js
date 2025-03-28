@@ -1,9 +1,8 @@
 const path = require('path');
-const { app, BrowserWindow, Tray, Menu } = require('electron');
+const { app, BrowserWindow } = require('electron');
 const isDev = require('electron-is-dev');
 
 let mainWindow;
-let tray;
 
 function createWindow() {
   // Create the browser window
@@ -21,37 +20,19 @@ function createWindow() {
   });
 
   // Load the app
-  mainWindow.loadURL(
-    isDev 
-      ? 'http://localhost:3000' 
-      : `file://${path.join(__dirname, 'build/index.html')}`
-  );
-
-  // Create system tray icon
-  tray = new Tray(path.join(__dirname, 'path/to/icon.png')); // Replace with your icon path
-  const contextMenu = Menu.buildFromTemplate([
-    { 
-      label: 'Show', 
-      click: () => mainWindow.show() 
-    },
-    { 
-      label: 'Exit', 
-      click: () => app.quit() 
-    }
-  ]);
-  tray.setToolTip('Your Widget Name');
-  tray.setContextMenu(contextMenu);
+  if (isDev) {
+    // In development, wait for the React server to be ready
+    setTimeout(() => {
+      mainWindow.loadURL('http://localhost:3000');
+    }, 2000);
+  } else {
+    mainWindow.loadURL(`file://${path.join(__dirname, 'build/index.html')}`);
+  }
 
   // Optional: Open DevTools in development
   if (isDev) {
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
-
-  // Hide to system tray instead of closing
-  mainWindow.on('close', (event) => {
-    event.preventDefault();
-    mainWindow.hide();
-  });
 }
 
 app.on('ready', createWindow);
